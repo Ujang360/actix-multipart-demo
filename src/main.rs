@@ -5,7 +5,7 @@ use env_logger::builder as log_builder;
 use futures::{StreamExt, TryStreamExt};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
-use serde_json::to_string_pretty as to_json_pretty;
+use serde_json::to_string as to_json;
 use std::env::{set_var, var};
 use std::io::Result as IOResult;
 use std::net::SocketAddrV4;
@@ -70,8 +70,8 @@ async fn receive_multiparts(mut payload: Multipart) -> impl Responder {
         received_parts.push(ReceivedPart { content_data, content_type, content_disposition });
     }
 
-    info!("Got {:#?}", received_parts);
-    let received_parts_as_json = to_json_pretty(&received_parts).unwrap();
+    info!("Got {:?}", received_parts);
+    let received_parts_as_json = to_json(&received_parts).unwrap();
 
     HttpResponse::Ok().body(received_parts_as_json)
 }
