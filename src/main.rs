@@ -89,7 +89,7 @@ async fn receive_multiparts(mut payload: Multipart) -> impl Responder {
     let mut counter = 0;
 
     for received_part in received_parts {
-        received_parts_string.push_str(&format!("Part {}", counter));
+        received_parts_string.push_str(&format!("Part {}\n", counter));
         received_parts_string.push_str(&received_part.to_string());
         counter += 1;
     }
