@@ -4,9 +4,8 @@ use dotenv::dotenv;
 use env_logger::builder as log_builder;
 use futures::{StreamExt, TryStreamExt};
 use log::{error, info};
-use serde::{Deserialize, Serialize};
-use serde_json::to_string as to_json;
 use std::env::{set_var, var};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::io::Result as IOResult;
 use std::net::SocketAddrV4;
 
@@ -14,11 +13,27 @@ const DEFAULT_BINDING_ADDRESS: &str = "0.0.0.0:5050";
 const BINDING_ADDRESS: &str = "BINDING_ADDRESS";
 const RUST_LOG: &str = "RUST_LOG";
 
-#[derive(Debug, Deserialize, Serialize)]
 struct ReceivedPart {
     content_type: String,
     content_disposition: Option<String>,
     content_data: Vec<u8>,
+}
+
+impl Display for ReceivedPart {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let content_disposition = match self.content_disposition.as_ref() {
+            None => "".to_string(),
+            Some(cd) => cd.to_string(),
+        };
+
+        write!(
+            f,
+            "content-type: {}\ncontent-disposition: {}\ncontent-length: {}",
+            self.content_type,
+            content_disposition,
+            self.content_data.len()
+        )
+    }
 }
 
 fn init_logger() {
@@ -70,10 +85,17 @@ async fn receive_multiparts(mut payload: Multipart) -> impl Responder {
         received_parts.push(ReceivedPart { content_data, content_type, content_disposition });
     }
 
-    info!("Got {:?}", received_parts);
-    let received_parts_as_json = to_json(&received_parts).unwrap();
+    let mut received_parts_string = String::new();
+    let mut counter = 0;
 
-    HttpResponse::Ok().body(received_parts_as_json)
+    for received_part in received_parts {
+        received_parts_string.push_str(&format!("Part {}", counter));
+        received_parts_string.push_str(&received_part.to_string());
+        counter += 1;
+    }
+
+    info!("Got {}", received_parts_string);
+    HttpResponse::Ok().body(received_parts_string)
 }
 
 #[actix_web::main]
