@@ -28,7 +28,7 @@ impl Display for ReceivedPart {
 
         write!(
             f,
-            "content-type: {}\ncontent-disposition: {}\ncontent-length: {}",
+            "content-type: {}\ncontent-disposition: {}\ncontent-length: {}\n",
             self.content_type,
             content_disposition,
             self.content_data.len()
@@ -55,7 +55,7 @@ fn load_binding_address() -> String {
         Ok(env_binding_address) => {
             if env_binding_address.parse::<SocketAddrV4>().is_err() {
                 error!(
-                    "Invalid SockedAddrV4 => \"{}\", using the default \"{}\"",
+                    "Invalid SocketAddrV4 => \"{}\", using the default \"{}\"",
                     env_binding_address, DEFAULT_BINDING_ADDRESS
                 );
                 DEFAULT_BINDING_ADDRESS.to_string()
@@ -89,7 +89,7 @@ async fn receive_multiparts(mut payload: Multipart) -> impl Responder {
     let mut counter = 0;
 
     for received_part in received_parts {
-        received_parts_string.push_str(&format!("\n\nPart {}\n", counter));
+        received_parts_string.push_str(&format!("\nPart {}\n", counter));
         received_parts_string.push_str(&received_part.to_string());
         counter += 1;
     }
